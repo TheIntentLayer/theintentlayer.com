@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Authorize -- The Intent Layer{% endblock %}
+
+{% block content %}
+{% if show_login %}
+{# User needs to log in first #}
+<div class="form-container">
+    <h1>Log In to Continue</h1>
+    <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+        <strong>{{ client_name }}</strong> wants to access your AI Command Center.
+    </p>
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/oauth/authorize">
+        {# Preserve OAuth params #}
+        <input type="hidden" name="client_id" value="{{ client_id }}">
+        <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+        <input type="hidden" name="response_type" value="{{ response_type }}">
+        <input type="hidden" name="code_challenge" value="{{ code_challenge }}">
+        <input type="hidden" name="code_challenge_method" value="{{ code_challenge_method }}">
+        <input type="hidden" name="scope" value="{{ scope }}">
+        <input type="hidden" name="state" value="{{ state }}">
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required autocomplete="email">
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary">Log In</button>
+    </form>
+
+    <div class="form-footer">
+        Don't have an account? <a href="/auth/register">Sign up first</a>
+    </div>
+</div>
+
+{% else %}
+{# User is logged in -- show consent #}
+<div class="consent-box">
+    <h1>Authorize {{ client_name }}</h1>
+    <p class="scope-info">
+        <strong>{{ client_name }}</strong> wants to access your AI Command Center data.<br>
+        <span style="font-size: 0.8rem;">Scopes: {{ scope }}</span>
+    </p>
+
+    <form method="post" action="/oauth/authorize">
+        <input type="hidden" name="client_id" value="{{ client_id }}">
+        <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+        <input type="hidden" name="response_type" value="{{ response_type }}">
+        <input type="hidden" name="code_challenge" value="{{ code_challenge }}">
+        <input type="hidden" name="code_challenge_method" value="{{ code_challenge_method }}">
+        <input type="hidden" name="scope" value="{{ scope }}">
+        <input type="hidden" name="state" value="{{ state }}">
+
+        <div class="consent-actions">
+            <button type="submit" name="action" value="approve" class="btn btn-primary">Approve</button>
+            <button type="submit" name="action" value="deny" class="btn btn-danger">Deny</button>
+        </div>
+    </form>
+</div>
+{% endif %}
+{% endblock %}
