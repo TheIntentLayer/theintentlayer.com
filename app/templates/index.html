@@ -425,8 +425,10 @@
     <div class="hero">
         <h1>Your AI Command Center</h1>
         <p class="tagline">The one place that sees your whole life.</p>
+        {% if not user %}
         <span class="beta-badge">Early Beta</span>
         <a href="mailto:nikhil@aitrustcommons.org?subject=AI%20Command%20Center%20Beta%20Access" class="hero-cta">Request Access</a>
+        {% endif %}
     </div>
 
     <div class="section-label">The Problem You Already Have</div>
@@ -555,7 +557,9 @@
 
     <div class="closing">
         <p class="final">The system is ready.<br>You are the missing piece.</p>
+        {% if not user %}
         <a href="mailto:nikhil@aitrustcommons.org?subject=AI%20Command%20Center%20Beta%20Access" class="closing-cta">Request Early Beta Access</a>
+        {% endif %}
     </div>
 
     <div class="landing-footer">
