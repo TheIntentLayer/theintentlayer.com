@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard -- The Intent Layer{% endblock %}
+
+{% block content %}
+<div class="container dashboard">
+    <h1>Dashboard</h1>
+
+    <table class="info-table">
+        <tr>
+            <td>Name</td>
+            <td>{{ account.name }}</td>
+        </tr>
+        <tr>
+            <td>Email</td>
+            <td>{{ account.email }}</td>
+        </tr>
+        <tr>
+            <td>Member since</td>
+            <td>{{ account.created_at }}</td>
+        </tr>
+        <tr>
+            <td>API Keys</td>
+            <td>
+                {% if api_keys %}
+                    {% for key in api_keys %}
+                    <code>{{ key[:8] }}...</code>{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <span style="color: var(--text-muted);">No linked API keys yet.</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <div style="margin-top: 2rem;">
+        <a href="/auth/logout" class="btn btn-ghost">Log out</a>
+    </div>
+</div>
+{% endblock %}
