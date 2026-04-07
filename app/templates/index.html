@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}The Intent Layer -- AI partnerships that persist{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>The Intent Layer</h1>
+    <p class="tagline">Open-source infrastructure for AI partnerships that persist.</p>
+</div>
+
+<div class="container">
+    <div class="section">
+        <h2>The Problem</h2>
+        <p>
+            Your AI forgets you every conversation. Your preferences, your working style,
+            the decisions you made yesterday. Every session starts cold. You repeat yourself.
+            The AI guesses.
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>The Solution</h2>
+        <p>
+            The Intent Layer gives any AI client a persistent identity layer: who the human is,
+            how they work, what's happening, and how the AI should behave. One system, any model,
+            every conversation starts warm.
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>Products</h2>
+        <div class="card-grid">
+            <div class="card">
+                <h3>AI Command Center</h3>
+                <p>Template repo for your identity rules, personalities, and status tracking.</p>
+                <p style="margin-top: 0.75rem;">
+                    <a href="https://github.com/TheIntentLayer/ai-command-center">View on GitHub &rarr;</a>
+                </p>
+            </div>
+            <div class="card">
+                <h3>MCP Server</h3>
+                <p>Runtime API that serves your identity data to any MCP-compatible AI client.</p>
+                <p style="margin-top: 0.75rem;">
+                    <a href="https://github.com/TheIntentLayer/ai-command-center-mcp">View on GitHub &rarr;</a>
+                </p>
+            </div>
+            <div class="card">
+                <h3>This Website</h3>
+                <p>OAuth provider for MCP connectors. Coming soon: guided onboarding via Q&amp;A.</p>
+                <p style="margin-top: 0.75rem;">
+                    <a href="/auth/register">Create an account &rarr;</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>How It Works</h2>
+        <p>Three layers define your AI partnership:</p>
+        <div class="layers">
+            <div class="layer">
+                <div class="layer-num">1</div>
+                <div class="layer-text">
+                    <strong>Identity Rules</strong>
+                    <span>Who you are, how you work, what you expect from AI.</span>
+                </div>
+            </div>
+            <div class="layer">
+                <div class="layer-num">2</div>
+                <div class="layer-text">
+                    <strong>Personalities</strong>
+                    <span>Behavioral modes the AI switches between based on context.</span>
+                </div>
+            </div>
+            <div class="layer">
+                <div class="layer-num">3</div>
+                <div class="layer-text">
+                    <strong>Status</strong>
+                    <span>What's happening now -- active work, deadlines, blockers.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Related</h2>
+        <div class="card-grid">
+            <div class="card">
+                <h3>AI Trust Commons</h3>
+                <p>Open standards for trustworthy AI partnerships.</p>
+                <p style="margin-top: 0.75rem;">
+                    <a href="https://aitrustcommons.org">aitrustcommons.org &rarr;</a>
+                </p>
+            </div>
+            <div class="card">
+                <h3>HIP Charter</h3>
+                <p>Human-Intent Preservation charter for AI systems.</p>
+                <p style="margin-top: 0.75rem;">
+                    <a href="https://hipcharter.com">hipcharter.com &rarr;</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" style="text-align: center; padding-bottom: 4rem;">
+        <p style="color: var(--text-muted);">
+            Founded by <a href="https://linkedin.com/in/nikhilsinghal">Nikhil Singhal</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
