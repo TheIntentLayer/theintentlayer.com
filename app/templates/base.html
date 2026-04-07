@@ -12,8 +12,14 @@
     <nav>
         <a href="/" class="logo">The Intent Layer</a>
         <div class="nav-links">
-            <a href="https://github.com/TheIntentLayer">GitHub</a>
-            <a href="/auth/login">Log in</a>
+            <a href="/">Home</a>
+            <a href="/product">Product</a>
+            {% if user %}
+            <a href="/dashboard">Dashboard</a>
+            {% else %}
+            <a href="/auth/login">Sign In</a>
+            <a href="/auth/register" class="btn btn-nav">Get Started</a>
+            {% endif %}
         </div>
     </nav>
 
@@ -21,12 +27,15 @@
         {% block content %}{% endblock %}
     </main>
 
+    {% block footer %}
     <footer>
         <div class="container">
             &copy; 2026 The Intent Layer &middot;
+            <a href="https://theintentlayer.com">theintentlayer.com</a> &middot;
             <a href="https://aitrustcommons.org">AI Trust Commons</a> &middot;
             <a href="https://hipcharter.com">HIP Charter</a>
         </div>
     </footer>
+    {% endblock %}
 </body>
 </html>

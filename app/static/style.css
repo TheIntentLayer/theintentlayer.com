@@ -1,4 +1,4 @@
-/* The Intent Layer -- clean, minimal, dark mode */
+/* The Intent Layer -- clean, minimal, dark mode (all pages except landing) */
 
 :root {
     --bg: #0d1117;
@@ -83,6 +83,21 @@ nav .nav-links a {
 
 nav .nav-links a:hover {
     color: var(--text);
+    text-decoration: none;
+}
+
+nav .nav-links .btn-nav {
+    display: inline-block;
+    padding: 0.35rem 0.9rem;
+    background: var(--accent);
+    color: var(--bg) !important;
+    border-radius: var(--radius);
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+nav .nav-links .btn-nav:hover {
+    background: var(--accent-hover);
     text-decoration: none;
 }
 
@@ -256,6 +271,30 @@ main {
     border-color: var(--accent);
 }
 
+.form-help {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+}
+
+.form-help a {
+    color: var(--accent);
+}
+
+.form-section {
+    margin-bottom: 1.5rem;
+}
+
+.form-section h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+}
+
 .btn {
     display: inline-block;
     padding: 0.6rem 1.25rem;
@@ -302,6 +341,7 @@ main {
 .btn-ghost:hover {
     color: var(--text);
     border-color: var(--text-muted);
+    text-decoration: none;
 }
 
 .form-footer {
@@ -334,12 +374,141 @@ main {
 /* Dashboard */
 .dashboard {
     padding: 2rem 0;
+    max-width: 720px;
+    margin: 0 auto;
 }
 
-.dashboard h1 {
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-header h1 {
     font-size: 1.5rem;
     font-weight: 600;
+}
+
+.dashboard-user {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Setup card */
+.setup-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+}
+
+.setup-card h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.setup-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
     margin-bottom: 1.5rem;
+}
+
+/* Connected card */
+.connected-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+}
+
+.connected-badge {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    background: rgba(63, 185, 80, 0.1);
+    border: 1px solid rgba(63, 185, 80, 0.3);
+    border-radius: var(--radius);
+    color: var(--success);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-section {
+    margin-bottom: 1.75rem;
+}
+
+.info-section h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.8rem;
+}
+
+.copy-field {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.75rem;
+}
+
+.copy-field code {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text);
+    word-break: break-all;
+}
+
+.btn-copy {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: var(--font);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-copy:hover {
+    color: var(--text);
+    border-color: var(--text-muted);
+}
+
+.steps {
+    list-style: decimal;
+    padding-left: 1.25rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+}
+
+.steps strong {
+    color: var(--text);
+}
+
+.connect-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.connect-desc code {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    background: var(--bg);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
 }
 
 .info-table {
@@ -355,7 +524,7 @@ main {
 
 .info-table td:first-child {
     color: var(--text-muted);
-    width: 120px;
+    width: 140px;
 }
 
 .info-table code {
@@ -441,5 +610,15 @@ footer a:hover {
 
     .consent-actions {
         flex-direction: column;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .copy-field {
+        flex-wrap: wrap;
     }
 }

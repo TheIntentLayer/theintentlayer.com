@@ -6,7 +6,7 @@
 {% if show_login %}
 {# User needs to log in first #}
 <div class="form-container">
-    <h1>Log In to Continue</h1>
+    <h1>Sign In to Continue</h1>
     <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
         <strong>{{ client_name }}</strong> wants to access your AI Command Center.
     </p>
@@ -33,11 +33,11 @@
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required autocomplete="current-password">
         </div>
-        <button type="submit" class="btn btn-primary">Log In</button>
+        <button type="submit" class="btn btn-primary">Sign In</button>
     </form>
 
     <div class="form-footer">
-        Don't have an account? <a href="/auth/register">Sign up first</a>
+        Don't have an account? <a href="/auth/register">Get started first</a>
     </div>
 </div>
 

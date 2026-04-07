@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Log In -- The Intent Layer{% endblock %}
+{% block title %}Sign In -- The Intent Layer{% endblock %}
 
 {% block content %}
 <div class="form-container">
-    <h1>Log In</h1>
+    <h1>Sign In</h1>
 
     {% if error %}
     <div class="alert alert-error">{{ error }}</div>
@@ -23,11 +23,11 @@
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required autocomplete="current-password">
         </div>
-        <button type="submit" class="btn btn-primary">Log In</button>
+        <button type="submit" class="btn btn-primary">Sign In</button>
     </form>
 
     <div class="form-footer">
-        Don't have an account? <a href="/auth/register">Sign up</a>
+        Don't have an account? <a href="/auth/register">Get started</a>
     </div>
 </div>
 {% endblock %}
