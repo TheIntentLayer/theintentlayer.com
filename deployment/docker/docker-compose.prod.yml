@@ -1,0 +1,32 @@
+services:
+  web:
+    container_name: aicc-web
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - shared-data:/app/data
+    env_file:
+      - ../../.env
+    environment:
+      - TZ=America/Los_Angeles
+    restart: always
+
+  mcp:
+    container_name: aicc-mcp
+    build:
+      context: /opt/mcp
+      dockerfile: deployment/docker/Dockerfile
+    ports:
+      - "127.0.0.1:8443:8443"
+    volumes:
+      - shared-data:/app/data
+    environment:
+      - TZ=America/Los_Angeles
+    restart: always
+
+volumes:
+  shared-data:
+    driver: local
