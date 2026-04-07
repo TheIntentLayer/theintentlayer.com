@@ -1,111 +1,577 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your AI Command Center -- The Intent Layer</title>
+    <meta name="description" content="The one place that sees your whole life. Not a to-do app. Not a productivity system. A place to put everything, and something that holds it for you.">
+    <meta property="og:title" content="Your AI Command Center">
+    <meta property="og:description" content="The one place that sees your whole life. You just talk. And things get done.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://theintentlayer.com/">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #1c1917;
+            --paper: #faf9f7;
+            --accent: #92400e;
+            --accent-light: #b45309;
+            --muted: #78716c;
+            --rule: #e7e5e4;
+            --card: #ffffff;
+            --card-border: #f5f5f4;
+            --dark-bg: #1c1917;
+            --dark-text: #f0ebe4;
+            --dark-muted: #a89e91;
+            --dark-rule: rgba(168, 158, 145, 0.25);
+        }
 
-{% block title %}The Intent Layer -- AI partnerships that persist{% endblock %}
+        [data-theme="dark"] {
+            --ink: #f0ebe4;
+            --paper: #1c1917;
+            --accent: #d97706;
+            --accent-light: #f59e0b;
+            --muted: #a89e91;
+            --rule: rgba(168, 158, 145, 0.25);
+            --card: #292524;
+            --card-border: #44403c;
+        }
 
-{% block content %}
-<div class="hero">
-    <h1>The Intent Layer</h1>
-    <p class="tagline">Open-source infrastructure for AI partnerships that persist.</p>
-</div>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 17px; scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', -apple-system, sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.75;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Nav bar */
+        .landing-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .landing-nav .nav-logo {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--ink);
+            text-decoration: none;
+        }
+
+        .landing-nav .nav-logo:hover {
+            color: var(--accent);
+        }
+
+        .landing-nav .nav-items {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .landing-nav .nav-items a {
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .landing-nav .nav-items a:hover {
+            color: var(--ink);
+        }
+
+        .landing-nav .nav-cta {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            background: var(--accent);
+            color: var(--paper) !important;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none !important;
+        }
+
+        .landing-nav .nav-cta:hover {
+            background: var(--accent-light);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--rule);
+            border-radius: 5px;
+            padding: 0.3rem 0.5rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--muted);
+            color: var(--ink);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 4rem 0 3.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--rule);
+        }
+
+        .hero h1 {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-weight: 600;
+            font-size: 2.6rem;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            color: var(--ink);
+        }
+
+        .hero .tagline {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 1.15rem;
+            font-style: italic;
+            font-weight: 300;
+            color: var(--accent);
+            margin-top: 0.75rem;
+            letter-spacing: 0.01em;
+        }
+
+        .hero .hero-cta {
+            display: inline-block;
+            margin-top: 1.75rem;
+            padding: 0.65rem 2rem;
+            background: var(--accent);
+            color: var(--paper);
+            border-radius: 6px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+
+        .hero .hero-cta:hover {
+            background: var(--accent-light);
+            text-decoration: none;
+        }
+
+        /* Section headers */
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 3.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--rule);
+        }
+
+        /* Body text */
+        p {
+            font-size: 1rem;
+            margin-bottom: 1.25rem;
+            color: var(--ink);
+        }
+
+        .lead {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 1.2rem;
+            font-weight: 400;
+            line-height: 1.8;
+        }
+
+        strong { font-weight: 600; color: var(--ink); }
+
+        em {
+            font-style: italic;
+            color: var(--muted);
+        }
+
+        /* Blockquote */
+        blockquote {
+            margin: 2rem 0;
+            padding: 1.5rem 1.75rem;
+            background: var(--card);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 6px 6px 0;
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-style: italic;
+            font-size: 1.05rem;
+            color: var(--ink);
+            line-height: 1.8;
+            box-shadow: 0 1px 4px rgba(28, 25, 23, 0.04);
+        }
+
+        /* Divider */
+        .divider {
+            width: 2.5rem;
+            height: 2px;
+            background: var(--accent);
+            margin: 3rem auto;
+            opacity: 0.4;
+        }
+
+        /* Moment cards */
+        .moment {
+            margin: 1.75rem 0;
+            padding: 1.25rem 1.5rem;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            box-shadow: 0 1px 6px rgba(28, 25, 23, 0.04);
+        }
+
+        .moment .label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+
+        .moment .quote {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 0.4rem;
+            line-height: 1.3;
+        }
+
+        .moment .desc {
+            font-size: 0.9rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* Dark voice section */
+        .voice-section {
+            margin: 3rem 0;
+            padding: 2.5rem 2rem;
+            background: var(--dark-bg);
+            color: var(--dark-text);
+            border-radius: 12px;
+        }
+
+        .voice-section .section-label {
+            color: var(--dark-muted);
+            border-bottom-color: var(--dark-rule);
+            margin-top: 0;
+        }
+
+        .voice-line {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-style: italic;
+            font-size: 1rem;
+            color: var(--dark-muted);
+            line-height: 1.8;
+            padding: 0.75rem 0;
+        }
+
+        .voice-sep {
+            width: 1.5rem;
+            height: 1px;
+            background: var(--dark-rule);
+            margin: 0;
+        }
+
+        .voice-punchline {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            font-style: normal;
+            color: var(--dark-text);
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--dark-rule);
+            line-height: 1.5;
+        }
+
+        /* Not-list */
+        .not-item {
+            padding: 0.75rem 0;
+            font-size: 1rem;
+        }
+
+        .not-item .not-label {
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        /* Closing */
+        .closing {
+            text-align: center;
+            margin: 3.5rem 0 2rem;
+        }
+
+        .closing .final {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--ink);
+            line-height: 1.5;
+        }
+
+        .closing .closing-cta {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 0.7rem 2.5rem;
+            background: var(--accent);
+            color: var(--paper);
+            border-radius: 6px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+
+        .closing .closing-cta:hover {
+            background: var(--accent-light);
+            text-decoration: none;
+        }
+
+        /* Footer */
+        .landing-footer {
+            padding: 2rem 0;
+            border-top: 1px solid var(--rule);
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .landing-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .landing-footer a:hover { text-decoration: underline; }
+
+        .landing-footer .footer-links {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+
+        .landing-footer .footer-links a {
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        /* Mobile */
+        @media (max-width: 540px) {
+            html { font-size: 16px; }
+            .container { padding: 0 1.5rem; }
+            .landing-nav { padding: 1rem 1.5rem; }
+            .hero { padding: 3.5rem 0 2.5rem; }
+            .hero h1 { font-size: 2rem; }
+            .voice-section { padding: 2rem 1.5rem; }
+            .landing-nav .nav-items { gap: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
 
 <div class="container">
-    <div class="section">
-        <h2>The Problem</h2>
-        <p>
-            Your AI forgets you every conversation. Your preferences, your working style,
-            the decisions you made yesterday. Every session starts cold. You repeat yourself.
-            The AI guesses.
-        </p>
-    </div>
 
-    <div class="section">
-        <h2>The Solution</h2>
-        <p>
-            The Intent Layer gives any AI client a persistent identity layer: who the human is,
-            how they work, what's happening, and how the AI should behave. One system, any model,
-            every conversation starts warm.
-        </p>
-    </div>
-
-    <div class="section">
-        <h2>Products</h2>
-        <div class="card-grid">
-            <div class="card">
-                <h3>AI Command Center</h3>
-                <p>Template repo for your identity rules, personalities, and status tracking.</p>
-                <p style="margin-top: 0.75rem;">
-                    <a href="https://github.com/TheIntentLayer/ai-command-center">View on GitHub &rarr;</a>
-                </p>
-            </div>
-            <div class="card">
-                <h3>MCP Server</h3>
-                <p>Runtime API that serves your identity data to any MCP-compatible AI client.</p>
-                <p style="margin-top: 0.75rem;">
-                    <a href="https://github.com/TheIntentLayer/ai-command-center-mcp">View on GitHub &rarr;</a>
-                </p>
-            </div>
-            <div class="card">
-                <h3>This Website</h3>
-                <p>OAuth provider for MCP connectors. Coming soon: guided onboarding via Q&amp;A.</p>
-                <p style="margin-top: 0.75rem;">
-                    <a href="/auth/register">Create an account &rarr;</a>
-                </p>
-            </div>
+    <div class="landing-nav">
+        <a href="/" class="nav-logo">The Intent Layer</a>
+        <div class="nav-items">
+            <a href="/product">Product</a>
+            {% if user %}
+            <a href="/dashboard">Dashboard</a>
+            {% else %}
+            <a href="/auth/login">Sign In</a>
+            <a href="/auth/register" class="nav-cta">Get Started</a>
+            {% endif %}
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">Light/Dark</button>
         </div>
     </div>
 
-    <div class="section">
-        <h2>How It Works</h2>
-        <p>Three layers define your AI partnership:</p>
-        <div class="layers">
-            <div class="layer">
-                <div class="layer-num">1</div>
-                <div class="layer-text">
-                    <strong>Identity Rules</strong>
-                    <span>Who you are, how you work, what you expect from AI.</span>
-                </div>
-            </div>
-            <div class="layer">
-                <div class="layer-num">2</div>
-                <div class="layer-text">
-                    <strong>Personalities</strong>
-                    <span>Behavioral modes the AI switches between based on context.</span>
-                </div>
-            </div>
-            <div class="layer">
-                <div class="layer-num">3</div>
-                <div class="layer-text">
-                    <strong>Status</strong>
-                    <span>What's happening now -- active work, deadlines, blockers.</span>
-                </div>
-            </div>
+    <div class="hero">
+        <h1>Your AI Command Center</h1>
+        <p class="tagline">The one place that sees your whole life.</p>
+        <a href="/auth/register" class="hero-cta">Get Started</a>
+    </div>
+
+    <div class="section-label">The Problem You Already Have</div>
+
+    <p class="lead">You know that moment on Sunday night when it hits you.</p>
+
+    <p>The lab report is due Tuesday. The presentation you promised your team is half done. You told your friend you would help them move this weekend. Your mom texted about something you <em>already forgot</em>. That Mediterranean trip you have been dreaming about for two years is still just a Pinterest board. You have not been to the gym in two weeks and you are pretending that does not bother you.</p>
+
+    <p>Somewhere in your notes app there is a list of things you were excited about a month ago that you have not looked at since.</p>
+
+    <p><strong>And that is just the stuff you remember.</strong></p>
+
+    <p>The things that <em>actually</em> matter to you, the side project you want to launch, the career move you keep thinking about but never act on, the novel that has been "almost started" for a year, the health goals you restart every January, the relationship you need to repair, the trip you keep postponing, those keep getting pushed by whatever is screaming loudest today.</p>
+
+    <p>Not because you do not care. Because <strong>nobody sees all of it at once.</strong> Not your boss. Not your friends. Not your family. Not your professor. And definitely not you, because it is all scattered across email, calendars, group chats, your notes app, your head, and 47 browser tabs you will close later.</p>
+
+    <blockquote>You are not disorganized. You are carrying everything alone, across systems that have no idea the other ones exist.</blockquote>
+
+    <p>And the dreams? The cruise, the startup idea, the book, the fitness goal, the thing you <em>actually</em> want your life to be about? Those never become real because there is always something more urgent. The status report wins. The grocery run wins. The homework wins. And another month passes without the thing you actually wanted to do.</p>
+
+    <div class="divider"></div>
+
+    <div class="section-label">What If You Had a Place to Put All of It</div>
+
+    <p>Imagine you open Claude and say <strong>"what is on my plate this week?"</strong> and it actually knows. Not because you told it five minutes ago. Because it knows your projects, your classes, your deadlines, your goals, your job applications, the side project you started three weeks ago, what stressed you out last Thursday, and what you decided to do about it.</p>
+
+    <p>You say <em>"I need to finish that proposal by Friday"</em> and it creates a tracked item with a deadline. Next time you open a chat, it reminds you. <strong>You do not have to remember to remember.</strong></p>
+
+    <p>You say <em>"I want to plan that Italy trip for September"</em> and it creates a goal. Research flights. Check budget. Talk to friends who want to come. It sits alongside your work deadlines and your health goals, not in a separate app you will forget to open. Every time you check in, it is there. Not screaming at you. Just present. Reminding you that your life is not just the urgent stuff.</p>
+
+    <p>You think out loud about a problem you are stuck on. Three weeks later, when something similar comes up, Claude connects the dots: <em>"Last time this happened you said you were going to try a different approach. Did you?"</em></p>
+
+    <p>A chat fills up. You start a new one. <strong>It picks up exactly where you left off.</strong> No re-explaining. No "as I mentioned before." No starting from zero. Every conversation builds on every conversation that came before it.</p>
+
+    <p>You check your board and see everything across your whole life in one view. What is due. What is in progress. What keeps slipping. What you have been avoiding. <em>What you have been dreaming about.</em> Not in eight different apps. <strong>In one place.</strong></p>
+
+    <div class="divider"></div>
+
+    <div class="section-label">The Moments That Change It</div>
+
+    <div class="moment">
+        <div class="label">Moment One</div>
+        <div class="quote">"It already knows me."</div>
+        <div class="desc">The first time you open a new chat and Claude knows what you were working on yesterday without you saying a word.</div>
+    </div>
+
+    <div class="moment">
+        <div class="label">Moment Two</div>
+        <div class="quote">"I forgot about that, but it didn't."</div>
+        <div class="desc">The first time Claude reminds you about something you committed to three sessions ago.</div>
+    </div>
+
+    <div class="moment">
+        <div class="label">Moment Three</div>
+        <div class="quote">"Wait, it saved that?"</div>
+        <div class="desc">The first time you realize the draft you built in a conversation two weeks ago is still there, organized, findable.</div>
+    </div>
+
+    <div class="moment">
+        <div class="label">Moment Four</div>
+        <div class="quote">"I can actually see everything."</div>
+        <div class="desc">The first time you look at your board and see your whole life in one view. Work, school, health, career, creative projects, relationships, dreams. And realize nothing is falling through the cracks.</div>
+    </div>
+
+    <div class="moment">
+        <div class="label">Moment Five</div>
+        <div class="quote">"This is mine."</div>
+        <div class="desc">The moment it stops feeling like a tool and starts feeling like the place where you think.</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="voice-section">
+        <div class="section-label">What You Are Getting</div>
+
+        <div class="voice-line">I am your journal that talks back.</div>
+        <div class="voice-sep"></div>
+        <div class="voice-line">I am the friend who remembers what you said three weeks ago and asks if you followed through.</div>
+        <div class="voice-sep"></div>
+        <div class="voice-line">I am your coordinator who sees every deadline across every part of your life and makes sure nothing slips.</div>
+        <div class="voice-sep"></div>
+        <div class="voice-line">I am your reminder system that does not need you to set reminders.</div>
+        <div class="voice-sep"></div>
+        <div class="voice-line">I am your butler who organizes everything behind the scenes so you never have to file, sort, or search.</div>
+        <div class="voice-sep"></div>
+        <div class="voice-line">I am the confidant who never judges, never gossips, never gets tired of hearing about the same problem twice.</div>
+        <div class="voice-sep"></div>
+        <div class="voice-line">I am the thinking partner who pushes back when your plan has a hole in it and tells you when your idea is actually good.</div>
+        <div class="voice-sep"></div>
+        <div class="voice-line">I am the place where your dreams stop being "someday" and start having steps.</div>
+
+        <div class="voice-punchline">You do not manage me. You just talk. And things get done.</div>
+    </div>
+
+    <div class="section-label">How It Actually Feels</div>
+
+    <p>You do not interact with repositories. You do not manage task boards. You do not configure extensions. Those are the <strong>pipes behind the wall.</strong> You do not think about your apartment's plumbing when you take a shower.</p>
+
+    <p>What you interact with is <strong>Claude.</strong> You open your project. You start talking. About work, about school, about the gym, about your startup, about a difficult conversation you need to have, about the trip you have been postponing, about something you are excited about but have not told anyone yet.</p>
+
+    <p>Claude tracks what matters, saves what you create, reminds you what you committed to, and picks up where you left off. <em>Every time.</em></p>
+
+    <blockquote>The first time takes 20 minutes to set up. After that, you just talk.</blockquote>
+
+    <div class="divider"></div>
+
+    <div class="section-label">Where This Came From</div>
+
+    <p>This system was built by someone who was <strong>drowning in his own life.</strong> Work across multiple companies. A book he was writing. Products he was shipping. A family that needed him. Articles, career strategy, governance work, all of it in his head, all the time, and no single place where all of it was visible at once.</p>
+
+    <p>He did not need a smarter AI. He needed <strong>a place to put everything.</strong> A place where his whole life was held, organized, and moving forward. A place that knew him well enough to push back when a plan had a hole in it. A place that never forgot what he committed to. A place where the dreams sat alongside the deadlines so they stopped getting pushed to "someday."</p>
+
+    <p>He built it for himself. Then he built it for his family. Each person's system looks completely different because each person's life is different. But the core is the same: <em>one place, one partner, your whole life, nothing falls through.</em></p>
+
+    <p>It works. And it is available to anyone willing to spend 20 minutes setting it up.</p>
+
+    <div class="divider"></div>
+
+    <div class="section-label">What This Is Not</div>
+
+    <div class="not-item"><span class="not-label">This is not a to-do app.</span> You have plenty of those and you do not use them.</div>
+    <div class="not-item"><span class="not-label">This is not a productivity system</span> that requires you to be productive to maintain it. The system maintains itself.</div>
+    <div class="not-item"><span class="not-label">This is not someone else's system with your name on it.</span> The structure is a starting point. The content, the voice, the rules, the personality, that is all yours. After a few sessions it will feel nothing like anyone else's.</div>
+
+    <blockquote>This is a place to put your whole life. And something that holds it for you and gives it back when you need it.</blockquote>
+
+    <div class="closing">
+        <p class="final">The system is ready.<br>You are the missing piece.</p>
+        <a href="/auth/register" class="closing-cta">Get Started</a>
+    </div>
+
+    <div class="landing-footer">
+        <a href="https://theintentlayer.com">theintentlayer.com</a>
+        <div class="footer-links">
+            <a href="https://aitrustcommons.org">AI Trust Commons</a> &middot;
+            <a href="https://hipcharter.com">HIP Charter</a>
         </div>
     </div>
 
-    <div class="section">
-        <h2>Related</h2>
-        <div class="card-grid">
-            <div class="card">
-                <h3>AI Trust Commons</h3>
-                <p>Open standards for trustworthy AI partnerships.</p>
-                <p style="margin-top: 0.75rem;">
-                    <a href="https://aitrustcommons.org">aitrustcommons.org &rarr;</a>
-                </p>
-            </div>
-            <div class="card">
-                <h3>HIP Charter</h3>
-                <p>Human-Intent Preservation charter for AI systems.</p>
-                <p style="margin-top: 0.75rem;">
-                    <a href="https://hipcharter.com">hipcharter.com &rarr;</a>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <div class="section" style="text-align: center; padding-bottom: 4rem;">
-        <p style="color: var(--text-muted);">
-            Founded by <a href="https://linkedin.com/in/nikhilsinghal">Nikhil Singhal</a>
-        </p>
-    </div>
 </div>
-{% endblock %}
+
+<script>
+function toggleTheme() {
+    var html = document.documentElement;
+    if (html.getAttribute('data-theme') === 'dark') {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+    } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+    }
+}
+// Restore preference
+(function() {
+    var saved = localStorage.getItem('theme');
+    if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+})();
+</script>
+
+</body>
+</html>
