@@ -4,37 +4,195 @@
 
 {% block content %}
 <div class="container dashboard">
-    <h1>Dashboard</h1>
-
-    <table class="info-table">
-        <tr>
-            <td>Name</td>
-            <td>{{ account.name }}</td>
-        </tr>
-        <tr>
-            <td>Email</td>
-            <td>{{ account.email }}</td>
-        </tr>
-        <tr>
-            <td>Member since</td>
-            <td>{{ account.created_at }}</td>
-        </tr>
-        <tr>
-            <td>API Keys</td>
-            <td>
-                {% if api_keys %}
-                    {% for key in api_keys %}
-                    <code>{{ key[:8] }}...</code>{% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                {% else %}
-                    <span style="color: var(--text-muted);">No linked API keys yet.</span>
-                {% endif %}
-            </td>
-        </tr>
-    </table>
-
-    <div style="margin-top: 2rem;">
-        <a href="/auth/logout" class="btn btn-ghost">Log out</a>
+    <div class="dashboard-header">
+        <h1>Dashboard</h1>
+        <span class="dashboard-user">{{ user.name }} &middot; <a href="/auth/logout">Log out</a></span>
     </div>
+
+    {% if error is defined and error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    {% if not user.setup_complete or (editing is defined and editing) %}
+    {# Setup form #}
+    <div class="setup-card">
+        <h2>{% if user.setup_complete %}Update Configuration{% else %}Complete Your Setup{% endif %}</h2>
+        <p class="setup-desc">Connect your GitHub repo so your AI Command Center can access your identity data.</p>
+
+        <form method="post" action="{% if user.setup_complete %}/dashboard/update{% else %}/dashboard/setup{% endif %}">
+            <div class="form-section">
+                <h3>GitHub (required)</h3>
+                <div class="form-group">
+                    <label for="github_repo_url">GitHub Repo URL</label>
+                    <input type="text" id="github_repo_url" name="github_repo_url"
+                           placeholder="e.g., github.com/yourname/your-repo"
+                           value="{% if user.github_owner %}github.com/{{ user.github_owner }}/{{ user.github_repo }}{% endif %}"
+                           required>
+                    <span class="form-help">e.g., github.com/yourname/your-repo</span>
+                </div>
+                <div class="form-group">
+                    <label for="github_pat">GitHub PAT</label>
+                    <input type="password" id="github_pat" name="github_pat"
+                           placeholder="ghp_xxxxxxxxxxxx"
+                           {% if not user.setup_complete %}required{% endif %}>
+                    <span class="form-help">Create at <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a> -- needs 'repo' scope</span>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Azure DevOps (optional)</h3>
+                <div class="form-group">
+                    <label for="az_org">AZ DevOps Organization</label>
+                    <input type="text" id="az_org" name="az_org"
+                           placeholder="e.g., myorg"
+                           value="{{ user.az_org or '' }}">
+                    <span class="form-help">e.g., myorg</span>
+                </div>
+                <div class="form-group">
+                    <label for="az_project">AZ DevOps Project</label>
+                    <input type="text" id="az_project" name="az_project"
+                           placeholder="e.g., My Project"
+                           value="{{ user.az_project or '' }}">
+                    <span class="form-help">e.g., My Project</span>
+                </div>
+                <div class="form-group">
+                    <label for="az_pat">AZ DevOps PAT</label>
+                    <input type="password" id="az_pat" name="az_pat"
+                           placeholder="Optional">
+                    <span class="form-help">Create at <a href="https://dev.azure.com" target="_blank">dev.azure.com</a> -- needs 'Work Items' scope</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                {% if user.setup_complete %}Save Changes{% else %}Complete Setup{% endif %}
+            </button>
+        </form>
+    </div>
+
+    {% else %}
+    {# Connection info #}
+    <div class="connected-card">
+        <div class="connected-badge">Your AI Command Center is connected!</div>
+
+        <div class="info-section">
+            <h3>MCP Connector URL</h3>
+            <div class="copy-field">
+                <code id="mcp-url">https://mcp.theintentlayer.com/mcp</code>
+                <button class="btn-copy" onclick="copyText('mcp-url')" title="Copy to clipboard">Copy</button>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>Your API Key</h3>
+            <div class="copy-field">
+                <code id="api-key" class="hidden-key">
+                    <span class="key-hidden">{{ user.api_key[:8] }}••••••••••••••••</span>
+                    <span class="key-revealed" style="display:none;">{{ user.api_key }}</span>
+                </code>
+                <button class="btn-copy" onclick="toggleReveal()" id="reveal-btn">Reveal</button>
+                <button class="btn-copy" onclick="copyKey()" title="Copy to clipboard">Copy</button>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>Connect to Claude</h3>
+            <ol class="steps">
+                <li>Open your Claude project</li>
+                <li>Go to <strong>Connectors</strong></li>
+                <li>Click <strong>"Add custom connector"</strong></li>
+                <li>Enter a name and paste the MCP URL above</li>
+                <li>Click <strong>Add</strong> -- you will be redirected here to approve the connection</li>
+            </ol>
+        </div>
+
+        <div class="info-section">
+            <h3>Connect to Copilot Studio</h3>
+            <p class="connect-desc">
+                Use the API key above as a Bearer token in your Copilot Studio connector
+                configuration. Point it at <code>https://mcp.theintentlayer.com/mcp</code>.
+            </p>
+        </div>
+
+        <div class="info-section">
+            <h3>Your Configuration</h3>
+            <table class="info-table">
+                <tr>
+                    <td>GitHub</td>
+                    <td>{{ user.github_owner }}/{{ user.github_repo }}</td>
+                </tr>
+                {% if user.az_org %}
+                <tr>
+                    <td>Azure DevOps</td>
+                    <td>{{ user.az_org }}/{{ user.az_project }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td>Member since</td>
+                    <td>{{ user.created_at }}</td>
+                </tr>
+            </table>
+            <div style="margin-top: 1.25rem;">
+                <a href="?edit=1" class="btn btn-ghost" onclick="event.preventDefault(); document.getElementById('edit-form').style.display='block'; this.style.display='none';">Update Configuration</a>
+            </div>
+        </div>
+    </div>
+
+    {# Hidden edit form #}
+    <div id="edit-form" style="display:none;">
+        <div class="setup-card" style="margin-top: 1.5rem;">
+            <h2>Update Configuration</h2>
+            <form method="post" action="/dashboard/update">
+                <div class="form-group">
+                    <label for="edit_github_repo_url">GitHub Repo URL</label>
+                    <input type="text" id="edit_github_repo_url" name="github_repo_url"
+                           value="github.com/{{ user.github_owner }}/{{ user.github_repo }}">
+                </div>
+                <div class="form-group">
+                    <label for="edit_github_pat">GitHub PAT</label>
+                    <input type="password" id="edit_github_pat" name="github_pat" placeholder="Leave blank to keep current">
+                </div>
+                <div class="form-group">
+                    <label for="edit_az_org">AZ DevOps Organization</label>
+                    <input type="text" id="edit_az_org" name="az_org" value="{{ user.az_org or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="edit_az_project">AZ DevOps Project</label>
+                    <input type="text" id="edit_az_project" name="az_project" value="{{ user.az_project or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="edit_az_pat">AZ DevOps PAT</label>
+                    <input type="password" id="edit_az_pat" name="az_pat" placeholder="Leave blank to keep current">
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+function copyText(id) {
+    var el = document.getElementById(id);
+    navigator.clipboard.writeText(el.textContent.trim());
+}
+
+function copyKey() {
+    navigator.clipboard.writeText('{{ user.api_key }}');
+}
+
+function toggleReveal() {
+    var hidden = document.querySelector('.key-hidden');
+    var revealed = document.querySelector('.key-revealed');
+    var btn = document.getElementById('reveal-btn');
+    if (revealed.style.display === 'none') {
+        revealed.style.display = 'inline';
+        hidden.style.display = 'none';
+        btn.textContent = 'Hide';
+    } else {
+        revealed.style.display = 'none';
+        hidden.style.display = 'inline';
+        btn.textContent = 'Reveal';
+    }
+}
+</script>
 {% endblock %}
