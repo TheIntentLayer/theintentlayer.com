@@ -162,7 +162,10 @@
                     <label for="edit_az_pat">AZ DevOps PAT</label>
                     <input type="password" id="edit_az_pat" name="az_pat" placeholder="Leave blank to keep current">
                 </div>
-                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button type="submit" class="btn btn-primary" id="save-btn" disabled>Save Changes</button>
+                    <button type="button" class="btn btn-ghost" onclick="document.getElementById('edit-form').style.display='none'; document.querySelector('[onclick*=edit-form]').style.display='';">Cancel</button>
+                </div>
             </form>
         </div>
     </div>
@@ -178,6 +181,25 @@ function copyText(id) {
 function copyKey() {
     navigator.clipboard.writeText('{{ user.api_key }}');
 }
+
+// Dirty detection for edit form
+(function() {
+    var form = document.querySelector('#edit-form form');
+    if (!form) return;
+    var saveBtn = document.getElementById('save-btn');
+    var originals = {};
+    form.querySelectorAll('input').forEach(function(input) {
+        originals[input.name] = input.value;
+    });
+    form.addEventListener('input', function() {
+        var dirty = false;
+        form.querySelectorAll('input').forEach(function(input) {
+            if (input.type === 'password' && input.value !== '') dirty = true;
+            else if (input.type !== 'password' && input.value !== originals[input.name]) dirty = true;
+        });
+        saveBtn.disabled = !dirty;
+    });
+})();
 
 function toggleReveal() {
     var hidden = document.querySelector('.key-hidden');
