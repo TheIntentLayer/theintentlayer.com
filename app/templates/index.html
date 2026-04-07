@@ -332,6 +332,20 @@
             line-height: 1.5;
         }
 
+        .beta-badge {
+            display: inline-block;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent);
+            background: rgba(146, 64, 14, 0.1);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            margin-bottom: 0.75rem;
+        }
+
         .closing .closing-cta {
             display: inline-block;
             margin-top: 1.5rem;
@@ -402,7 +416,7 @@
             <a href="/dashboard">Dashboard</a>
             {% else %}
             <a href="/auth/login">Sign In</a>
-            <a href="/auth/register" class="nav-cta">Get Started</a>
+            <a href="mailto:nikhil@aitrustcommons.org?subject=AI%20Command%20Center%20Beta%20Access" class="nav-cta">Request Access</a>
             {% endif %}
             <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">Light/Dark</button>
         </div>
@@ -411,7 +425,8 @@
     <div class="hero">
         <h1>Your AI Command Center</h1>
         <p class="tagline">The one place that sees your whole life.</p>
-        <a href="/auth/register" class="hero-cta">Get Started</a>
+        <span class="beta-badge">Early Beta</span>
+        <a href="mailto:nikhil@aitrustcommons.org?subject=AI%20Command%20Center%20Beta%20Access" class="hero-cta">Request Access</a>
     </div>
 
     <div class="section-label">The Problem You Already Have</div>
@@ -540,7 +555,7 @@
 
     <div class="closing">
         <p class="final">The system is ready.<br>You are the missing piece.</p>
-        <a href="/auth/register" class="closing-cta">Get Started</a>
+        <a href="mailto:nikhil@aitrustcommons.org?subject=AI%20Command%20Center%20Beta%20Access" class="closing-cta">Request Early Beta Access</a>
     </div>
 
     <div class="landing-footer">
