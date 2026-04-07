@@ -15,7 +15,6 @@ from app.auth import (
     validate_session_token,
     authenticate,
     create_session_token,
-    get_account_by_id,
     SESSION_COOKIE_NAME,
 )
 from app.config import (
@@ -27,7 +26,7 @@ from app.config import (
     SUPPORTED_SCOPES,
     COOKIE_SECURE,
 )
-from app.db import get_db
+from app.db import get_db, get_user_by_id
 from app.jwt_utils import create_access_token
 
 router = APIRouter()
@@ -108,14 +107,14 @@ async def register_client(request: Request):
 # Authorization endpoint
 # ---------------------------------------------------------------------------
 
-def _get_current_account(request: Request) -> dict | None:
+def _get_current_user(request: Request) -> dict | None:
     token = request.cookies.get(SESSION_COOKIE_NAME)
     if not token:
         return None
     session = validate_session_token(token)
     if not session:
         return None
-    return get_account_by_id(session["account_id"])
+    return get_user_by_id(session["user_id"])
 
 
 @router.get("/oauth/authorize")
@@ -147,11 +146,11 @@ async def authorize_get(request: Request):
     if redirect_uri not in allowed_uris:
         raise HTTPException(400, "redirect_uri not registered")
 
-    account = _get_current_account(request)
+    user = _get_current_user(request)
 
     templates = request.app.state.templates
 
-    if not account:
+    if not user:
         # Show login form with oauth params preserved
         return templates.TemplateResponse(
             "authorize.html",
@@ -178,7 +177,7 @@ async def authorize_get(request: Request):
             "client_name": client["client_name"],
             "scope": scope,
             "show_login": False,
-            "account": account,
+            "user": user,
             "client_id": client_id,
             "redirect_uri": redirect_uri,
             "response_type": response_type,
@@ -216,10 +215,10 @@ async def authorize_post(
     if not client:
         raise HTTPException(400, "Unknown client_id")
 
-    account = _get_current_account(request)
+    user = _get_current_user(request)
 
     # If not logged in, try to authenticate
-    if not account:
+    if not user:
         if not email or not password:
             return templates.TemplateResponse(
                 "authorize.html",
@@ -238,8 +237,8 @@ async def authorize_post(
                 },
             )
 
-        account = authenticate(email, password)
-        if not account:
+        user = authenticate(email, password)
+        if not user:
             return templates.TemplateResponse(
                 "authorize.html",
                 {
@@ -258,7 +257,7 @@ async def authorize_post(
             )
 
         # Set session cookie so they stay logged in
-        session_token = create_session_token(account["id"])
+        session_token = create_session_token(user["id"])
 
         # After login, show consent screen
         response = templates.TemplateResponse(
@@ -268,7 +267,7 @@ async def authorize_post(
                 "client_name": client["client_name"],
                 "scope": scope,
                 "show_login": False,
-                "account": account,
+                "user": user,
                 "client_id": client_id,
                 "redirect_uri": redirect_uri,
                 "response_type": response_type,
@@ -301,13 +300,13 @@ async def authorize_post(
     with get_db() as db:
         db.execute(
             """INSERT INTO oauth_codes
-               (code, client_id, account_id, redirect_uri, scope,
+               (code, client_id, user_id, redirect_uri, scope,
                 code_challenge, code_challenge_method, expires_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 code,
                 client_id,
-                account["id"],
+                user["id"],
                 redirect_uri,
                 scope,
                 code_challenge,
@@ -383,10 +382,10 @@ def _handle_auth_code(
         db.execute("UPDATE oauth_codes SET used = 1 WHERE code = ?", (code,))
 
         # Generate tokens
-        account_id = row["account_id"]
+        user_id = row["user_id"]
         scope = row["scope"]
 
-        access_token, access_expires = create_access_token(account_id, scope)
+        access_token, access_expires = create_access_token(user_id, scope)
         refresh_tok = secrets.token_urlsafe(48)
         refresh_expires = datetime.now(timezone.utc) + timedelta(
             days=REFRESH_TOKEN_LIFETIME_DAYS
@@ -395,17 +394,17 @@ def _handle_auth_code(
         # Store access token reference
         db.execute(
             """INSERT INTO oauth_tokens
-               (token, client_id, account_id, scope, expires_at)
+               (token, client_id, user_id, scope, expires_at)
                VALUES (?, ?, ?, ?, ?)""",
-            (access_token, client_id, account_id, scope, access_expires.isoformat()),
+            (access_token, client_id, user_id, scope, access_expires.isoformat()),
         )
 
         # Store refresh token
         db.execute(
             """INSERT INTO oauth_refresh_tokens
-               (token, client_id, account_id, scope, expires_at)
+               (token, client_id, user_id, scope, expires_at)
                VALUES (?, ?, ?, ?, ?)""",
-            (refresh_tok, client_id, account_id, scope, refresh_expires.isoformat()),
+            (refresh_tok, client_id, user_id, scope, refresh_expires.isoformat()),
         )
 
     return JSONResponse({
@@ -436,14 +435,14 @@ def _handle_refresh(refresh_token: str, client_id: str):
             raise HTTPException(400, "client_id mismatch")
 
         # Rotate: delete old refresh token, issue new ones
-        account_id = row["account_id"]
+        user_id = row["user_id"]
         scope = row["scope"]
 
         db.execute(
             "DELETE FROM oauth_refresh_tokens WHERE token = ?", (refresh_token,)
         )
 
-        access_token, access_expires = create_access_token(account_id, scope)
+        access_token, access_expires = create_access_token(user_id, scope)
         new_refresh = secrets.token_urlsafe(48)
         refresh_expires = datetime.now(timezone.utc) + timedelta(
             days=REFRESH_TOKEN_LIFETIME_DAYS
@@ -451,16 +450,16 @@ def _handle_refresh(refresh_token: str, client_id: str):
 
         db.execute(
             """INSERT INTO oauth_tokens
-               (token, client_id, account_id, scope, expires_at)
+               (token, client_id, user_id, scope, expires_at)
                VALUES (?, ?, ?, ?, ?)""",
-            (access_token, client_id, account_id, scope, access_expires.isoformat()),
+            (access_token, client_id, user_id, scope, access_expires.isoformat()),
         )
 
         db.execute(
             """INSERT INTO oauth_refresh_tokens
-               (token, client_id, account_id, scope, expires_at)
+               (token, client_id, user_id, scope, expires_at)
                VALUES (?, ?, ?, ?, ?)""",
-            (new_refresh, client_id, account_id, scope, refresh_expires.isoformat()),
+            (new_refresh, client_id, user_id, scope, refresh_expires.isoformat()),
         )
 
     return JSONResponse({

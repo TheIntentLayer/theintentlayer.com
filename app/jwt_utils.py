@@ -13,13 +13,13 @@ from app.config import (
 )
 
 
-def create_access_token(account_id: int, scope: str) -> tuple[str, datetime]:
+def create_access_token(user_id: int, scope: str) -> tuple[str, datetime]:
     """Create a signed JWT access token. Returns (token, expires_at)."""
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(seconds=ACCESS_TOKEN_LIFETIME_SECONDS)
     payload = {
         "iss": ISSUER,
-        "sub": str(account_id),
+        "sub": str(user_id),
         "aud": MCP_RESOURCE,
         "scope": scope,
         "exp": expires_at,

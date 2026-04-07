@@ -1,5 +1,6 @@
 """FastAPI application for theintentlayer.com."""
 
+import re
 import sqlite3
 from pathlib import Path
 
@@ -8,13 +9,12 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.db import init_db
+from app.db import init_db, get_db, get_user_by_id, update_user_config
 from app.auth import (
-    create_account,
+    register_user,
     authenticate,
     create_session_token,
     validate_session_token,
-    get_account_by_id,
     SESSION_COOKIE_NAME,
 )
 from app.config import COOKIE_SECURE
@@ -42,23 +42,60 @@ app.include_router(oauth_router)
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _current_account(request: Request) -> dict | None:
+def _current_user(request: Request) -> dict | None:
     token = request.cookies.get(SESSION_COOKIE_NAME)
     if not token:
         return None
     session = validate_session_token(token)
     if not session:
         return None
-    return get_account_by_id(session["account_id"])
+    return get_user_by_id(session["user_id"])
+
+
+def _parse_github_url(url: str) -> tuple[str, str] | None:
+    """Extract owner and repo from a GitHub URL or shorthand.
+    Accepts: github.com/owner/repo, https://github.com/owner/repo,
+    https://github.com/owner/repo.git, owner/repo
+    """
+    url = url.strip().rstrip("/")
+    # Remove .git suffix
+    if url.endswith(".git"):
+        url = url[:-4]
+    # Try to match github.com/owner/repo pattern
+    match = re.search(r"github\.com/([^/]+)/([^/]+)$", url)
+    if match:
+        return match.group(1), match.group(2)
+    # Try owner/repo pattern (no dots, no slashes beyond one)
+    match = re.match(r"^([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)$", url)
+    if match:
+        return match.group(1), match.group(2)
+    return None
 
 
 # ---------------------------------------------------------------------------
-# Landing page
+# Landing page (excitement page)
 # ---------------------------------------------------------------------------
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    user = _current_user(request)
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "user": user,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Product page (technical details)
+# ---------------------------------------------------------------------------
+
+@app.get("/product", response_class=HTMLResponse)
+async def product(request: Request):
+    user = _current_user(request)
+    return templates.TemplateResponse("product.html", {
+        "request": request,
+        "user": user,
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -90,13 +127,25 @@ async def register_submit(
             {"request": request, "error": "Password must be at least 8 characters."},
         )
     try:
-        create_account(name, email, password)
+        user = register_user(name, email, password)
     except sqlite3.IntegrityError:
         return templates.TemplateResponse(
             "register.html",
             {"request": request, "error": "An account with that email already exists."},
         )
-    return RedirectResponse("/auth/login?registered=1", status_code=302)
+
+    # Auto-login after registration
+    session_token = create_session_token(user["id"])
+    response = RedirectResponse("/dashboard", status_code=302)
+    response.set_cookie(
+        SESSION_COOKIE_NAME,
+        session_token,
+        httponly=True,
+        secure=COOKIE_SECURE,
+        samesite="lax",
+        max_age=86400 * 7,
+    )
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -122,15 +171,16 @@ async def login_submit(
     email: str = Form(""),
     password: str = Form(""),
 ):
-    account = authenticate(email, password)
-    if not account:
+    next_url = request.query_params.get("next", "/dashboard")
+    user = authenticate(email, password)
+    if not user:
         return templates.TemplateResponse(
             "login.html",
             {"request": request, "error": "Invalid email or password.", "success": None},
         )
 
-    session_token = create_session_token(account["id"])
-    response = RedirectResponse("/dashboard", status_code=302)
+    session_token = create_session_token(user["id"])
+    response = RedirectResponse(next_url, status_code=302)
     response.set_cookie(
         SESSION_COOKIE_NAME,
         session_token,
@@ -159,24 +209,107 @@ async def logout():
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
-    account = _current_account(request)
-    if not account:
-        return RedirectResponse("/auth/login", status_code=302)
-
-    # Get linked API keys
-    from app.db import get_db
-
-    with get_db() as db:
-        keys = db.execute(
-            "SELECT api_key FROM account_api_keys WHERE account_id = ?",
-            (account["id"],),
-        ).fetchall()
+    user = _current_user(request)
+    if not user:
+        return RedirectResponse("/auth/login?next=/dashboard", status_code=302)
 
     return templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
-            "account": account,
-            "api_keys": [k["api_key"] for k in keys],
+            "user": user,
         },
     )
+
+
+@app.post("/dashboard/setup", response_class=HTMLResponse)
+async def dashboard_setup(
+    request: Request,
+    github_repo_url: str = Form(""),
+    github_pat: str = Form(""),
+    az_org: str = Form(""),
+    az_project: str = Form(""),
+    az_pat: str = Form(""),
+):
+    user = _current_user(request)
+    if not user:
+        return RedirectResponse("/auth/login", status_code=302)
+
+    errors = []
+    if not github_repo_url:
+        errors.append("GitHub repo URL is required.")
+    if not github_pat:
+        errors.append("GitHub PAT is required.")
+
+    parsed = _parse_github_url(github_repo_url) if github_repo_url else None
+    if github_repo_url and not parsed:
+        errors.append("Could not parse GitHub repo URL. Use format: github.com/owner/repo")
+
+    if errors:
+        return templates.TemplateResponse(
+            "dashboard.html",
+            {
+                "request": request,
+                "user": user,
+                "error": " ".join(errors),
+            },
+        )
+
+    owner, repo = parsed
+    update_user_config(
+        user_id=user["id"],
+        github_owner=owner,
+        github_repo=repo,
+        github_pat=github_pat,
+        az_org=az_org or None,
+        az_project=az_project or None,
+        az_pat=az_pat or None,
+    )
+
+    return RedirectResponse("/dashboard", status_code=302)
+
+
+@app.post("/dashboard/update", response_class=HTMLResponse)
+async def dashboard_update(
+    request: Request,
+    github_repo_url: str = Form(""),
+    github_pat: str = Form(""),
+    az_org: str = Form(""),
+    az_project: str = Form(""),
+    az_pat: str = Form(""),
+):
+    user = _current_user(request)
+    if not user:
+        return RedirectResponse("/auth/login", status_code=302)
+
+    parsed = _parse_github_url(github_repo_url) if github_repo_url else None
+    if github_repo_url and not parsed:
+        # Refresh user to get current data
+        user = get_user_by_id(user["id"])
+        return templates.TemplateResponse(
+            "dashboard.html",
+            {
+                "request": request,
+                "user": user,
+                "error": "Could not parse GitHub repo URL.",
+                "editing": True,
+            },
+        )
+
+    if parsed:
+        owner, repo = parsed
+    else:
+        owner = user.get("github_owner")
+        repo = user.get("github_repo")
+
+    update_user_config(
+        user_id=user["id"],
+        github_owner=owner,
+        github_repo=repo,
+        github_pat=github_pat or user.get("github_pat"),
+        az_org=az_org or None,
+        az_project=az_project or None,
+        az_pat=az_pat or None,
+    )
+
+    return RedirectResponse("/dashboard", status_code=302)
