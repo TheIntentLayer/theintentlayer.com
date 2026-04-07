@@ -6,7 +6,7 @@ import bcrypt
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 from app.config import WEB_SECRET_KEY
-from app.db import get_db
+from app.db import get_db, create_user, get_user_by_email, get_user_by_id
 
 _serializer = URLSafeTimedSerializer(WEB_SECRET_KEY)
 SESSION_COOKIE_NAME = "til_session"
@@ -21,47 +21,33 @@ def verify_password(password: str, password_hash: str) -> bool:
     return bcrypt.checkpw(password.encode(), password_hash.encode())
 
 
-def create_session_token(account_id: int) -> str:
-    return _serializer.dumps({"account_id": account_id})
+def create_session_token(user_id: int) -> str:
+    return _serializer.dumps({"user_id": user_id})
 
 
 def validate_session_token(token: str) -> dict | None:
-    """Returns {"account_id": int} or None if invalid/expired."""
+    """Returns {"user_id": int} or None if invalid/expired."""
     try:
         return _serializer.loads(token, max_age=SESSION_MAX_AGE)
     except (BadSignature, SignatureExpired):
         return None
 
 
-def create_account(name: str, email: str, password: str) -> int:
-    """Create a new account. Returns account ID. Raises if email taken."""
+def register_user(name: str, email: str, password: str) -> dict:
+    """Create a new user with hashed password. Returns user dict.
+    Raises sqlite3.IntegrityError if email taken."""
     pw_hash = hash_password(password)
-    with get_db() as db:
-        cursor = db.execute(
-            "INSERT INTO accounts (email, password_hash, name) VALUES (?, ?, ?)",
-            (email, pw_hash, name),
-        )
-        return cursor.lastrowid
+    return create_user(name, email, password_hash=pw_hash)
 
 
 def authenticate(email: str, password: str) -> dict | None:
-    """Verify credentials. Returns account row or None."""
-    with get_db() as db:
-        row = db.execute(
-            "SELECT * FROM accounts WHERE email = ?", (email,)
-        ).fetchone()
-        if row and verify_password(password, row["password_hash"]):
+    """Verify credentials. Returns user row or None."""
+    user = get_user_by_email(email)
+    if user and user["password_hash"] and verify_password(password, user["password_hash"]):
+        with get_db() as db:
             db.execute(
-                "UPDATE accounts SET last_login = ? WHERE id = ?",
-                (datetime.now(timezone.utc).isoformat(), row["id"]),
+                "UPDATE users SET last_login = ? WHERE id = ?",
+                (datetime.now(timezone.utc).isoformat(), user["id"]),
             )
-            return dict(row)
+        return user
     return None
-
-
-def get_account_by_id(account_id: int) -> dict | None:
-    with get_db() as db:
-        row = db.execute(
-            "SELECT * FROM accounts WHERE id = ?", (account_id,)
-        ).fetchone()
-        return dict(row) if row else None
