@@ -1,4 +1,4 @@
-/* The Intent Layer -- clean, minimal, dark mode (all pages except landing) */
+/* The Intent Layer -- dark/light theme support */
 
 :root {
     --bg: #0d1117;
@@ -15,6 +15,19 @@
     --font-mono: "SF Mono", "Fira Code", monospace;
     --max-width: 960px;
     --radius: 6px;
+}
+
+[data-theme="light"] {
+    --bg: #ffffff;
+    --bg-surface: #f6f8fa;
+    --bg-elevated: #f0f2f4;
+    --border: #d0d7de;
+    --text: #1f2328;
+    --text-muted: #636c76;
+    --accent: #0969da;
+    --accent-hover: #0550ae;
+    --success: #1a7f37;
+    --danger: #cf222e;
 }
 
 *, *::before, *::after {
@@ -99,6 +112,35 @@ nav .nav-links .btn-nav {
 nav .nav-links .btn-nav:hover {
     background: var(--accent-hover);
     text-decoration: none;
+}
+
+nav .nav-links .nav-user {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+nav .nav-links .nav-user a {
+    color: var(--text-muted);
+}
+
+nav .nav-links .nav-user a:hover {
+    color: var(--text);
+}
+
+.theme-toggle {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-family: var(--font);
+}
+
+.theme-toggle:hover {
+    color: var(--text);
+    border-color: var(--text-muted);
 }
 
 /* Layout */

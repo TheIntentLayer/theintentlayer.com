@@ -16,10 +16,12 @@
             <a href="/product">Product</a>
             {% if user %}
             <a href="/dashboard">Dashboard</a>
+            <span class="nav-user">{{ user.name }} · <a href="/auth/logout">Log out</a></span>
             {% else %}
             <a href="/auth/login">Sign In</a>
             <a href="mailto:nikhil@aitrustcommons.org?subject=AI%20Command%20Center%20Beta%20Access" class="btn btn-nav">Request Access</a>
             {% endif %}
+            <button class="theme-toggle" onclick="toggleTheme()">Light</button>
         </div>
     </nav>
 
@@ -37,5 +39,21 @@
         </div>
     </footer>
     {% endblock %}
+<script>
+(function() {
+    var theme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    var btn = document.querySelector('.theme-toggle');
+    if (btn) btn.textContent = theme === 'dark' ? 'Light' : 'Dark';
+})();
+function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+    var next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    var btn = document.querySelector('.theme-toggle');
+    if (btn) btn.textContent = next === 'dark' ? 'Light' : 'Dark';
+}
+</script>
 </body>
 </html>
