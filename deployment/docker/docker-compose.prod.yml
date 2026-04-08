@@ -1,15 +1,28 @@
+# Production compose -- manages both aicc-web and aicc-mcp containers
+#
+# This is the CANONICAL deployment file for the AiCC platform.
+# Both containers are managed here, not in the MCP repo.
+#
+# Architecture:
+#   /opt/web  -- theintentlayer.com (website + OAuth provider)
+#   /opt/mcp  -- ai-command-center-mcp (MCP server)
+#   /opt/data -- shared SQLite DB (aicc.db, bind-mounted into both containers)
+#   /opt/logs -- MCP server logs
+#
+# Deploy: bash /opt/web/deployment/scripts/deploy.sh [mcp|web|all]
+
 services:
   web:
     container_name: aicc-web
     build:
-      context: ../..
+      context: /opt/web
       dockerfile: deployment/docker/Dockerfile
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
-      - shared-data:/app/data
+      - /opt/data:/app/data
     env_file:
-      - ../../.env
+      - /opt/web/.env
     environment:
       - TZ=America/Los_Angeles
     restart: always
@@ -22,11 +35,10 @@ services:
     ports:
       - "127.0.0.1:8443:8443"
     volumes:
-      - shared-data:/app/data
+      - /opt/data:/app/data
+      - /opt/logs:/app/logs
+    env_file:
+      - /opt/mcp/.env
     environment:
       - TZ=America/Los_Angeles
     restart: always
-
-volumes:
-  shared-data:
-    driver: local
