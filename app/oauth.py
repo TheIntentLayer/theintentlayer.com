@@ -3,10 +3,13 @@
 import hashlib
 import base64
 import json
+import logging
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
+
+import httpx
 
 from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
@@ -29,7 +32,37 @@ from app.config import (
 from app.db import get_db, get_user_by_id
 from app.jwt_utils import create_access_token
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
+
+MCP_TOOLS_URL = "https://mcp.theintentlayer.com/tools"
+
+
+async def _fetch_tool_lists() -> tuple[list[dict], list[dict]]:
+    """Fetch tools from MCP server and split into read vs write lists.
+
+    Returns (read_tools, write_tools). On any error, returns empty lists
+    so the consent page falls back to the generic scope display.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(MCP_TOOLS_URL)
+            resp.raise_for_status()
+            data = resp.json()
+    except Exception:
+        logger.warning("Failed to fetch tools from MCP server", exc_info=True)
+        return [], []
+
+    read_tools = []
+    write_tools = []
+    for tool in data.get("tools", []):
+        annotations = tool.get("annotations", {})
+        if annotations.get("readOnlyHint") is True:
+            read_tools.append(tool)
+        else:
+            write_tools.append(tool)
+    return read_tools, write_tools
 
 
 # ---------------------------------------------------------------------------
@@ -170,6 +203,7 @@ async def authorize_get(request: Request):
         )
 
     # User is logged in -- show consent screen
+    read_tools, write_tools = await _fetch_tool_lists()
     return templates.TemplateResponse(
         "authorize.html",
         {
@@ -185,6 +219,8 @@ async def authorize_get(request: Request):
             "code_challenge_method": code_challenge_method,
             "state": state,
             "error": None,
+            "read_tools": read_tools,
+            "write_tools": write_tools,
         },
     )
 
@@ -260,6 +296,7 @@ async def authorize_post(
         session_token = create_session_token(user["id"])
 
         # After login, show consent screen
+        read_tools, write_tools = await _fetch_tool_lists()
         response = templates.TemplateResponse(
             "authorize.html",
             {
@@ -275,6 +312,8 @@ async def authorize_post(
                 "code_challenge_method": code_challenge_method,
                 "state": state,
                 "error": None,
+                "read_tools": read_tools,
+                "write_tools": write_tools,
             },
         )
         response.set_cookie(

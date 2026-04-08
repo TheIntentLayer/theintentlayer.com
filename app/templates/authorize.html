@@ -43,12 +43,73 @@
 
 {% else %}
 {# User is logged in -- show consent #}
+<style>
+    .scope-details { margin: 1.5rem 0; text-align: left; }
+    .scope-details h3 {
+        font-size: 0.95rem;
+        margin: 1rem 0 0.25rem;
+        color: var(--text-muted, #a0a0a0);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .scope-details .scope-desc {
+        font-size: 0.8rem;
+        color: var(--text-muted, #a0a0a0);
+        margin: 0 0 0.5rem;
+    }
+    .tool-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 0.75rem;
+    }
+    .tool-list li {
+        font-size: 0.85rem;
+        padding: 0.35rem 0.5rem;
+        border-left: 2px solid var(--text-muted, #555);
+        margin-bottom: 0.25rem;
+        color: var(--text-muted, #ccc);
+    }
+    .tool-list li strong {
+        color: #fff;
+    }
+    .scope-details h3.write-heading {
+        color: #f59e0b;
+    }
+    .tool-list.write-list li {
+        border-left-color: #f59e0b;
+    }
+</style>
 <div class="consent-box">
     <h1>Authorize {{ client_name }}</h1>
     <p class="scope-info">
-        <strong>{{ client_name }}</strong> wants to access your AI Command Center data.<br>
-        <span style="font-size: 0.8rem;">Scopes: {{ scope }}</span>
+        <strong>{{ client_name }}</strong> wants to access your AI Command Center data.
     </p>
+
+    {% if read_tools or write_tools %}
+    <div class="scope-details">
+        {% if read_tools %}
+        <h3>Read access</h3>
+        <p class="scope-desc">These run automatically:</p>
+        <ul class="tool-list">
+            {% for tool in read_tools %}
+            <li><strong>{{ tool.name }}</strong> -- {{ tool.description }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if write_tools %}
+        <h3 class="write-heading">Write access</h3>
+        <p class="scope-desc">These require your approval each time:</p>
+        <ul class="tool-list write-list">
+            {% for tool in write_tools %}
+            <li><strong>{{ tool.name }}</strong> -- {{ tool.description }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% else %}
+    <p style="font-size: 0.8rem; color: var(--text-muted, #a0a0a0);">Scopes: {{ scope }}</p>
+    {% endif %}
 
     <form method="post" action="/oauth/authorize">
         <input type="hidden" name="client_id" value="{{ client_id }}">
